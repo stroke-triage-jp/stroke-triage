@@ -4,68 +4,287 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stroke Triage</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#007AFF">
+<meta name="theme-color" content="#0B5FFF">
 
 <style>
+:root{
+  --bg:#f2f4f8;
+  --card:#ffffff;
+  --brand:#0B5FFF;
+  --text:#111827;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --danger:#dc2626;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#f2f2f7;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+  background:var(--bg);
+  color:var(--text);
 }
-
 .header{
-  background:#007AFF;
-  color:white;
-  padding:18px;
-  font-size:20px;
-  font-weight:600;
-}
-
-.container{
-  padding:20px;
-}
-
-.card{
-  background:white;
-  padding:20px;
-  border-radius:16px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.08);
-}
-
-button{
-  width:100%;
+  background:var(--brand);
+  color:#fff;
   padding:16px;
   font-size:18px;
+  font-weight:600;
+}
+.container{
+  max-width:760px;
+  margin:0 auto;
+  padding:16px 14px 90px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,.05);
+}
+h2{
+  margin:0 0 12px 0;
+  font-size:16px;
+}
+button{
+  width:100%;
+  padding:12px;
+  font-size:15px;
   border:none;
-  border-radius:14px;
-  background:#007AFF;
+  border-radius:12px;
+  background:var(--brand);
   color:white;
-  margin-top:20px;
+  margin-top:8px;
+  font-weight:600;
 }
-button:active{
-  opacity:0.8;
+button.secondary{
+  background:#6b7280;
 }
+button:active{opacity:.85}
+.field{margin-bottom:14px}
+label{
+  font-size:13px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:6px;
+}
+input, select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  font-size:14px;
+}
+.option{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.option button{
+  flex:1;
+  background:#f3f4f6;
+  color:#111;
+  border:1px solid var(--line);
+}
+.option button.active{
+  background:#dbeafe;
+  border-color:#93c5fd;
+  color:#1e3a8a;
+}
+.result-box{
+  background:#f9fafb;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  white-space:pre-wrap;
+  font-size:14px;
+}
+.screen{display:none}
+.screen.active{display:block}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  margin-left:8px;
+}
+.badge.high{background:#fee2e2;color:#991b1b}
+.badge.mid{background:#fef9c3;color:#854d0e}
+.badge.low{background:#dcfce7;color:#065f46}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  Stroke Triage
-</div>
+<div class="header">Stroke Triage</div>
 
 <div class="container">
+
+<!-- HOME -->
+<div id="home" class="screen active">
   <div class="card">
-    <p>本アプリは評価補助ツールです。</p>
-    <button onclick="start()">同意して評価開始</button>
+    <p>本アプリは脳卒中初期対応の評価補助ツールです。</p>
+    <button onclick="showScreen('form')">同意して評価開始</button>
   </div>
 </div>
 
+<!-- FORM -->
+<div id="form" class="screen">
+
+  <div class="card">
+    <h2>基本情報</h2>
+
+    <div class="field">
+      <label>最終健常確認（LKW）</label>
+      <input id="lkw" placeholder="例：12:40">
+    </div>
+
+    <div class="field">
+      <label>血糖（mg/dL）</label>
+      <input id="glucose" inputmode="numeric">
+    </div>
+
+    <div class="field">
+      <label>抗凝固薬</label>
+      <select id="anticoag">
+        <option value="なし">なし</option>
+        <option value="DOAC">DOAC</option>
+        <option value="ワルファリン">ワルファリン</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>リズム</label>
+      <select id="rhythm">
+        <option value="SR">SR</option>
+        <option value="Af">Af</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>所見（6項目）</h2>
+
+    <div class="field">
+      <label>脈不整</label>
+      <div class="option" data-field="pulse">
+        <button onclick="selectOption(this)">なし</button>
+        <button onclick="selectOption(this)">あり</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>共同偏視</label>
+      <div class="option" data-field="gaze">
+        <button onclick="selectOption(this)">なし</button>
+        <button onclick="selectOption(this)">あり</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>半側空間無視</label>
+      <div class="option" data-field="neglect">
+        <button onclick="selectOption(this)">なし</button>
+        <button onclick="selectOption(this)">あり</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>半盲</label>
+      <div class="option" data-field="hemianopia">
+        <button onclick="selectOption(this)">なし</button>
+        <button onclick="selectOption(this)">あり</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>失語</label>
+      <div class="option" data-field="aphasia">
+        <button onclick="selectOption(this)">なし</button>
+        <button onclick="selectOption(this)">あり</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>片麻痺</label>
+      <div class="option" data-field="hemi">
+        <button onclick="selectOption(this)">なし</button>
+        <button onclick="selectOption(this)">あり</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <button onclick="generateSummary()">サマリー作成</button>
+    <button class="secondary" onclick="showScreen('home')">戻る</button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="summary" class="screen">
+  <div class="card">
+    <h2>評価結果 <span id="riskBadge" class="badge"></span></h2>
+    <div id="resultText" class="result-box"></div>
+    <button onclick="copyText()">コピー</button>
+    <button class="secondary" onclick="showScreen('form')">戻る</button>
+  </div>
+</div>
+
+</div>
+
 <script>
-function start(){
-  alert("ここから評価画面に進みます");
+let state = {};
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function selectOption(btn){
+  const group = btn.parentElement;
+  group.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state[group.dataset.field] = btn.innerText;
+}
+
+function generateSummary(){
+  state.lkw = document.getElementById("lkw").value || "不明";
+  state.glucose = document.getElementById("glucose").value || "未入力";
+  state.anticoag = document.getElementById("anticoag").value;
+  state.rhythm = document.getElementById("rhythm").value;
+
+  let positive = [];
+  for(let key of ["pulse","gaze","neglect","hemianopia","aphasia","hemi"]){
+    if(state[key]==="あり") positive.push(key);
+  }
+
+  let riskLevel="low";
+  if(positive.length>=3) riskLevel="high";
+  else if(positive.length>=1) riskLevel="mid";
+
+  const badge = document.getElementById("riskBadge");
+  badge.className="badge "+riskLevel;
+  badge.innerText = riskLevel==="high"?"高リスク":riskLevel==="mid"?"中等度":"低リスク";
+
+  const summary =
+`【Stroke Triage】
+LKW: ${state.lkw}
+血糖: ${state.glucose} mg/dL
+抗凝固: ${state.anticoag}
+リズム: ${state.rhythm}
+
+陽性所見: ${positive.length?positive.join(" / "):"なし"}
+陽性数: ${positive.length}`;
+
+  document.getElementById("resultText").innerText = summary;
+  showScreen('summary');
+}
+
+function copyText(){
+  const text = document.getElementById("resultText").innerText;
+  navigator.clipboard.writeText(text);
 }
 </script>
 
