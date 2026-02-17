@@ -1,100 +1,194 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0ea5e9" />
-  <title>Stroke Triage（Web）</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0ea5e9">
+<title>Stroke Triage（Web）</title>
 
-  <style>
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Sans","Yu Gothic UI",Arial,sans-serif;background:#0b1220;color:#e5e7eb}
-    .wrap{max-width:900px;margin:auto;padding:20px}
-    .card{background:#0f172a;border-radius:16px;padding:20px;margin-bottom:20px}
-    .btn{padding:12px 16px;border-radius:12px;border:none;background:#0ea5e9;color:#04202a;font-weight:600;cursor:pointer}
-    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0b1326;color:white;margin-bottom:10px}
-    .hidden{display:none}
-    .badge{padding:6px 10px;border-radius:999px;font-size:12px;background:#1e293b}
-  </style>
+<style>
+:root{
+  --bg1:#071022;
+  --bg2:#0e1b36;
+  --card:#0f1e3a;
+  --accent:#3fb5ff;
+  --text:#eaf3ff;
+  --muted:#9fb6d9;
+  --danger:#ff6b6b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+  background:linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:var(--text);
+}
+header{
+  padding:16px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(0,0,0,.3);
+  backdrop-filter:blur(10px);
+}
+header h1{margin:0;font-size:18px}
+.badge{
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  background:rgba(255,255,255,.08);
+}
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:18px;
+  margin-bottom:20px;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+}
+h2{margin-top:0}
+button{
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(90deg,#2dafff,#63d2ff);
+  color:#001018;
+  font-weight:600;
+  width:100%;
+  margin-top:10px;
+  cursor:pointer;
+}
+button.danger{
+  background:var(--danger);
+  color:white;
+}
+input,textarea{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.2);
+  color:white;
+  margin-bottom:12px;
+}
+.hidden{display:none}
+.history-item{
+  background:rgba(255,255,255,.05);
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
+  font-size:14px;
+}
+.small{font-size:12px;color:var(--muted)}
+</style>
 </head>
 
 <body>
-<div class="wrap">
+
+<header>
+  <h1>Stroke Triage（Web）</h1>
+  <div>
+    <span class="badge">保存: 端末内のみ</span>
+    <span class="badge">通信: なし</span>
+  </div>
+</header>
+
+<div class="container">
 
 <div class="card" id="intro">
-  <h2>Stroke Triage Web版</h2>
-  <p>本ツールは脳卒中初期対応の入力補助ツールです。医療判断の代替ではありません。</p>
-  <button class="btn" onclick="start()">同意して開始</button>
+  <h2>本アプリについて（テスト運用版）</h2>
+  <p>
+  本ツールは脳卒中初期対応における評価・記録・共有を補助する入力支援です。
+  医療判断の代替ではありません。
+  </p>
+  <button onclick="start()">同意して評価開始</button>
 </div>
 
 <div id="app" class="hidden">
 
 <div class="card">
-  <h3>基本情報</h3>
-  <label>ID</label>
-  <input id="patientID">
-  <label>年齢</label>
-  <input id="age">
-  <label>最終健在</label>
-  <input type="datetime-local" id="lkw">
-  <label>発見時刻</label>
-  <input type="datetime-local" id="disc">
+  <h2>基本情報</h2>
+  <input id="id" placeholder="患者ID">
+  <input id="age" placeholder="年齢">
+  <input id="bp" placeholder="血圧">
+  <input id="jcs" placeholder="JCS">
 </div>
 
 <div class="card">
-  <h3>バイタル</h3>
-  <label>JCS</label>
-  <input id="jcs">
-  <label>BP</label>
-  <input id="bp">
-  <label>SpO2</label>
-  <input id="spo2">
+  <h2>まとめ</h2>
+  <textarea id="summary" rows="8" placeholder="ここに生成されます"></textarea>
+  <button onclick="generate()">まとめ生成</button>
+  <button onclick="copy()">コピー</button>
 </div>
 
 <div class="card">
-  <h3>まとめ</h3>
-  <textarea id="summary" rows="10"></textarea>
-  <button class="btn" onclick="generate()">生成</button>
-  <button class="btn" onclick="copyText()">コピー</button>
+  <h2>履歴</h2>
+  <div id="history"></div>
+  <button class="danger" onclick="clearHistory()">全削除</button>
 </div>
 
 </div>
-
 </div>
 
 <script>
 function start(){
   document.getElementById("intro").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
+  loadHistory();
 }
 
 function generate(){
-  const id=document.getElementById("patientID").value||"-";
+  const id=document.getElementById("id").value||"-";
   const age=document.getElementById("age").value||"-";
-  const lkw=document.getElementById("lkw").value||"-";
-  const disc=document.getElementById("disc").value||"-";
-  const jcs=document.getElementById("jcs").value||"-";
   const bp=document.getElementById("bp").value||"-";
-  const spo2=document.getElementById("spo2").value||"-";
+  const jcs=document.getElementById("jcs").value||"-";
 
-  const text=`脳卒中対応記録
+  const text=
+`【脳卒中対応記録】
 
 ID: ${id}
 年齢: ${age}
-最終健在: ${lkw}
-発見時刻: ${disc}
-
-JCS: ${jcs}
-BP: ${bp}
-SpO2: ${spo2}`;
+血圧: ${bp}
+JCS: ${jcs}`;
 
   document.getElementById("summary").value=text;
+  saveHistory(text);
 }
 
-function copyText(){
+function copy(){
   const t=document.getElementById("summary");
   t.select();
   document.execCommand("copy");
   alert("コピーしました");
+}
+
+function saveHistory(text){
+  let h=JSON.parse(localStorage.getItem("history")||"[]");
+  h.unshift({time:new Date().toLocaleString(),text});
+  h=h.slice(0,10);
+  localStorage.setItem("history",JSON.stringify(h));
+  loadHistory();
+}
+
+function loadHistory(){
+  let h=JSON.parse(localStorage.getItem("history")||"[]");
+  const div=document.getElementById("history");
+  div.innerHTML="";
+  h.forEach(item=>{
+    const el=document.createElement("div");
+    el.className="history-item";
+    el.innerHTML=`<div>${item.time}</div><div class="small">${item.text.replace(/\n/g,"<br>")}</div>`;
+    div.appendChild(el);
+  });
+}
+
+function clearHistory(){
+  localStorage.removeItem("history");
+  loadHistory();
 }
 </script>
 
