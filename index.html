@@ -2,473 +2,1133 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0e1b36" />
   <title>Stroke Triage (Web)</title>
   <style>
     :root{
-      --bg:#071326; --card:#0e1f3b; --card2:#0b1a33;
-      --text:#e8eefc; --muted:#a9b7d6; --line:rgba(255,255,255,.10);
-      --accent:#18a7ff; --danger:#ff5d5d; --ok:#36d399; --warn:#fbbf24;
-      --radius:18px;
+      --bg:#071326;
+      --bg2:#0b1a33;
+      --card:rgba(255,255,255,.05);
+      --line:rgba(255,255,255,.10);
+      --text:#e8eefc;
+      --muted:#9ab7d6;
+      --accent:#18a7ff;
+      --danger:#ff5d5d;
+      --ok:#36d399;
+      --warn:#ffbb24;
+      --r:18px;
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-      background:radial-gradient(1200px 700px at 30% -10%, #12346a 0%, rgba(18,52,106,0) 55%) , var(--bg);
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Sans","Yu Gothic UI",Arial,sans-serif;
+      background:radial-gradient(1200px 700px at 30% -10%, rgba(24,167,255,.22) 0%, rgba(24,167,255,0) 55%), linear-gradient(180deg,var(--bg),var(--bg2));
       color:var(--text);
+      min-height:100vh;
     }
-    .wrap{max-width:980px;margin:0 auto;padding:22px 18px 60px}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-    h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.3px}
-    .badge{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:6px 10px;border-radius:999px}
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    header{
+      position:sticky; top:0; z-index:10;
+      background:rgba(0,0,0,.22);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--line);
+      padding:14px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.3px}
+    .badge{
+      font-size:12px; color:var(--muted);
       border:1px solid var(--line);
-      border-radius:var(--radius);
+      padding:6px 10px; border-radius:999px;
+      display:inline-flex; gap:8px; align-items:center;
+      white-space:nowrap;
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:22px 18px 90px}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:var(--r);
       padding:16px;
       box-shadow:0 18px 40px rgba(0,0,0,.25);
       margin:14px 0;
     }
-    .card h2{margin:0 0 12px;font-size:18px}
-    .grid{display:grid;gap:10px}
-    .grid.cols2{grid-template-columns:1fr 1fr}
-    .grid.cols3{grid-template-columns:1fr 1fr 1fr}
-    @media (max-width:820px){ .grid.cols2,.grid.cols3{grid-template-columns:1fr} }
-    label{font-size:12px;color:var(--muted);display:block;margin:0 0 6px}
-    input,select,textarea{
-      width:100%; padding:12px 12px; border-radius:12px;
-      border:1px solid var(--line); background:rgba(0,0,0,.20); color:var(--text);
+    .card h3{margin:0 0 12px;font-size:18px}
+    .tabs{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin:10px 0 16px;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .tab[aria-current="true"]{
+      border-color:rgba(24,167,255,.6);
+      background:rgba(24,167,255,.12);
+      color:var(--accent);
+      font-weight:700;
+      cursor:default;
+    }
+    .grid{display:grid; gap:10px}
+    .grid2{grid-template-columns:1fr 1fr}
+    .grid3{grid-template-columns:1fr 1fr 1fr}
+    @media (max-width:860px){
+      .grid2,.grid3{grid-template-columns:1fr}
+    }
+    label{display:block;font-size:12px;color:var(--muted);margin:2px 0 6px}
+    input, select, textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      border-radius:12px;
+      padding:12px 12px;
       outline:none;
     }
-    textarea{min-height:80px;resize:vertical}
-    .row{display:flex;gap:10px;align-items:center}
-    .row > *{flex:1}
-    .pillrow{display:flex;flex-direction:column;gap:8px}
+    textarea{min-height:88px;resize:vertical}
+    input::placeholder, textarea::placeholder{color:rgba(154,183,214,.55)}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .pill{
-      text-align:left; width:100%;
-      border-radius:12px; border:1px solid var(--line);
-      background:rgba(0,0,0,.18); color:var(--text);
-      padding:10px 12px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.14);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      width:100%;
+      text-align:left;
     }
-    .pill.on{border-color:rgba(24,167,255,.55); background:rgba(24,167,255,.14); color:#cfeaff}
-    .seg{display:flex;gap:8px;flex-wrap:wrap}
+    .pill.on{
+      border-color:rgba(24,167,255,.6);
+      background:rgba(24,167,255,.12);
+      color:var(--accent);
+      font-weight:700;
+    }
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
+    .status{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+    }
+    .status.ok{border-color:rgba(54,211,153,.45);color:var(--ok)}
+    .status.warn{border-color:rgba(255,187,36,.45);color:var(--warn)}
+    .status.bad{border-color:rgba(255,93,93,.45);color:var(--danger)}
+    .hidden{display:none !important}
+
+    /* bottom bar */
+    .bottom{
+      position:fixed; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.28);
+      backdrop-filter:blur(10px);
+      border-top:1px solid var(--line);
+      padding:12px 18px;
+      display:flex; gap:12px;
+    }
     .btn{
-      width:100%; padding:14px 14px; border-radius:14px; border:0;
-      font-weight:800; cursor:pointer;
+      flex:1;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      padding:14px 14px;
+      border-radius:14px;
+      font-weight:800;
+      cursor:pointer;
     }
-    .btn.primary{background:linear-gradient(90deg,#00b2ff,#27c1ff); color:#00152a}
-    .btn.ghost{background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--line)}
-    .btn.danger{background:linear-gradient(90deg,#ff4d4d,#ff6b6b); color:#1a0000}
-    .btn:active{transform:translateY(1px)}
-    .muted{color:var(--muted);font-size:12px}
-    .summaryBox{
-      white-space:pre-wrap; border:1px solid var(--line); border-radius:14px;
-      background:rgba(0,0,0,.18); padding:12px; min-height:110px;
-      font-size:13px; line-height:1.5;
+    .btn.primary{
+      background:linear-gradient(180deg, rgba(24,167,255,.95), rgba(24,167,255,.65));
+      border-color:rgba(24,167,255,.65);
+      color:#021018;
     }
-    .histItem{
-      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
-      border-top:1px solid var(--line); padding:12px 0;
-    }
-    .histItem:first-child{border-top:0;padding-top:0}
-    .histMeta{font-size:12px;color:var(--muted);min-width:150px}
-    .histText{font-size:13px;white-space:pre-wrap;flex:1}
+    .btn:disabled{opacity:.45; cursor:not-allowed}
     .toast{
-      position:fixed; left:50%; transform:translateX(-50%);
-      top:16px; background:rgba(0,0,0,.55); border:1px solid var(--line);
-      padding:10px 14px; border-radius:999px; font-weight:700;
-      opacity:0; pointer-events:none; transition:.18s;
+      position:fixed; top:70px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.15);
+      padding:10px 14px;
+      border-radius:999px;
+      color:var(--text);
+      font-weight:700;
+      display:none;
     }
-    .toast.show{opacity:1}
+    .toast.show{display:block}
+    .mono{font-variant-numeric:tabular-nums}
+    .muted{color:var(--muted)}
+    .danger{color:var(--danger)}
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Stroke Triage (Web)</h1>
-      <div class="badge" id="netBadge">通信: なし / 保存: 端末内</div>
-    </header>
-
-    <div class="card">
-      <h2>基本情報</h2>
-      <div class="grid cols2">
-        <div>
-          <label>患者ID</label>
-          <input id="patientID" placeholder="例：123456" inputmode="numeric" />
-        </div>
-        <div>
-          <label>年齢</label>
-          <div class="row">
-            <input id="age" placeholder="例：56" inputmode="numeric" />
-            <select id="sex">
-              <option value="男">男</option>
-              <option value="女">女</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid cols2" style="margin-top:10px">
-        <div>
-          <label>最終健在（LKW）</label>
-          <input id="lkw" type="datetime-local" />
-        </div>
-        <div>
-          <label>発見・発症時刻</label>
-          <input id="disc" type="datetime-local" />
-        </div>
-      </div>
-      <div class="muted" style="margin-top:8px">経過: <span id="elapsed">—</span></div>
-
-      <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
-
-      <h2 style="font-size:16px;margin-top:0">バイタル</h2>
-      <div class="grid cols3">
-        <div><label>JCS</label><input id="jcs" placeholder="—" /></div>
-        <div><label>GCS E</label><input id="gcsE" placeholder="—" inputmode="numeric" /></div>
-        <div><label>GCS V</label><input id="gcsV" placeholder="—" inputmode="numeric" /></div>
-        <div><label>GCS M</label><input id="gcsM" placeholder="—" inputmode="numeric" /></div>
-        <div><label>BP (収縮)</label><input id="bpSys" placeholder="—" inputmode="numeric" /></div>
-        <div><label>BP (拡張)</label><input id="bpDia" placeholder="—" inputmode="numeric" /></div>
-        <div><label>SpO₂ (%)</label><input id="spo2" placeholder="—" inputmode="numeric" /></div>
-        <div><label>酸素 (L)</label><input id="oxygenFlow" placeholder="—" inputmode="decimal" /></div>
-        <div><label>酸素 (%)</label><input id="oxygenPercent" placeholder="—" inputmode="numeric" /></div>
-        <div><label>HR (/分)</label><input id="heartRate" placeholder="—" inputmode="numeric" /></div>
-        <div>
-          <label>リズム</label>
-          <select id="heartRhythm">
-            <option value="SR">SR</option>
-            <option value="不整">不整</option>
-          </select>
-        </div>
-        <div>
-          <label>不整の種類</label>
-          <select id="irregularSubtype">
-            <option value="">未選択</option>
-            <option value="Af">Af</option>
-            <option value="PVC">PVC</option>
-            <option value="PAC">PAC</option>
-          </select>
-        </div>
-        <div><label>BS (mg/dl)</label><input id="bs" placeholder="—" inputmode="decimal" /></div>
-        <div><label>BT (℃)</label><input id="bt" placeholder="—" inputmode="decimal" /></div>
-        <div><label>瞳孔 右 (mm)</label><input id="pupilRight" placeholder="—" inputmode="decimal" /></div>
-        <div><label>瞳孔 左 (mm)</label><input id="pupilLeft" placeholder="—" inputmode="decimal" /></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>既往歴</h2>
-      <div class="seg" id="past"></div>
-      <div style="margin-top:12px">
-        <label>その他の既往歴（自由入力）</label>
-        <textarea id="otherPast" placeholder="例：喘息、甲状腺疾患 など"></textarea>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>まとめ</h2>
-      <div class="summaryBox" id="summary">ここに生成されます</div>
-      <div class="grid cols2" style="margin-top:12px">
-        <button class="btn primary" id="genBtn">まとめ生成</button>
-        <button class="btn ghost" id="copyBtn">コピー</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>履歴</h2>
-      <div id="historyList" class="muted">履歴はまだありません</div>
-      <div style="margin-top:12px">
-        <button class="btn danger" id="clearAllBtn">全削除</button>
-      </div>
-      <div class="muted" style="margin-top:8px">※最新10件を表示（端末内に保存）</div>
-    </div>
-
-    <div class="toast" id="toast">保存しました</div>
+<header>
+  <h1>Stroke Triage (Web)</h1>
+  <div class="badge">
+    <span id="netBadge">通信: なし</span>
+    <span> / </span>
+    <span id="saveBadge">保存: 端末内</span>
   </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs" id="stepTabs"></div>
+
+  <!-- STEP 0: Intro -->
+  <section class="card" data-step="intro">
+    <h3>本アプリについて（テスト運用版）</h3>
+    <p class="muted" style="margin:0 0 10px;line-height:1.6">
+      本アプリは、脳卒中初期対応における評価・記録・共有を補助するためのツールです。
+      実地での使用感や入力性、共有文面の妥当性の確認を目的としてテスト運用しています。
+    </p>
+    <div class="divider"></div>
+    <h3 style="margin:0 0 10px">ご利用にあたって</h3>
+    <p class="muted" style="margin:0;line-height:1.7">
+      ・本アプリは医療判断の代替ではありません。院内手順・ガイドラインに従ってください。<br>
+      ・緊急時は入力を待たずに患者対応と必要な連絡を優先してください。<br>
+      ・入力値（時刻・スコア等）は可能な範囲で根拠を確認してください。<br>
+      ・個人情報の取り扱いに注意してください（端末管理・共有先・スクリーンショット等）。
+    </p>
+    <div class="divider"></div>
+    <h3 style="margin:0 0 10px">免責事項</h3>
+    <p class="muted" style="margin:0;line-height:1.7">
+      本アプリの利用により生じたいかなる損害についても、作成者は責任を負いません。
+      表示内容は正確性・完全性を保証するものではなく、ユーザの自己責任において利用してください。
+    </p>
+  </section>
+
+  <!-- STEP 1: Overview -->
+  <section class="card hidden" data-step="overview">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">基本情報</h3>
+      <span class="status" id="st_overview">未入力</span>
+    </div>
+
+    <div class="grid grid3" style="margin-top:10px">
+      <div>
+        <label>患者ID</label>
+        <input id="patientID" placeholder="例：123456" inputmode="numeric" />
+      </div>
+      <div>
+        <label>年齢</label>
+        <input id="age" placeholder="例：56" inputmode="numeric" />
+      </div>
+      <div>
+        <label>性別</label>
+        <select id="sex">
+          <option value="男">男</option>
+          <option value="女">女</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid2" style="margin-top:10px">
+      <div>
+        <label>最終健在（LKW）</label>
+        <input id="lkw" type="datetime-local" />
+      </div>
+      <div>
+        <label>発見・発症時刻</label>
+        <input id="disc" type="datetime-local" />
+      </div>
+    </div>
+
+    <div style="margin-top:10px">
+      <label>経過</label>
+      <div class="mono" id="elapsed">—</div>
+      <div class="danger" id="timeWarn" style="display:none;margin-top:6px;font-size:12px">
+        発見時刻が最終健在より前になっています
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="margin:0 0 10px">バイタル</h3>
+    <div class="grid grid3">
+      <div><label>JCS</label><input id="jcs" placeholder="—" /></div>
+      <div><label>GCS E</label><input id="gcsE" placeholder="—" inputmode="numeric" /></div>
+      <div><label>GCS V</label><input id="gcsV" placeholder="—" inputmode="numeric" /></div>
+      <div><label>GCS M</label><input id="gcsM" placeholder="—" inputmode="numeric" /></div>
+      <div><label>BP（収縮）</label><input id="bpSys" placeholder="—" inputmode="numeric" /></div>
+      <div><label>BP（拡張）</label><input id="bpDia" placeholder="—" inputmode="numeric" /></div>
+      <div><label>SpO₂（%）</label><input id="spo2" placeholder="—" inputmode="numeric" /></div>
+      <div><label>酸素（L）</label><input id="o2Flow" placeholder="—" inputmode="decimal" /></div>
+      <div><label>酸素（%）</label><input id="o2Pct" placeholder="—" inputmode="numeric" /></div>
+      <div><label>HR（/分）</label><input id="hr" placeholder="—" inputmode="numeric" /></div>
+      <div>
+        <label>リズム</label>
+        <select id="rhythm">
+          <option value="SR">SR</option>
+          <option value="不整">不整</option>
+        </select>
+      </div>
+      <div>
+        <label>不整の種類</label>
+        <select id="irregSubtype" disabled>
+          <option value="">未選択</option>
+          <option value="Af">Af</option>
+          <option value="PVC">PVC</option>
+          <option value="PAC">PAC</option>
+        </select>
+      </div>
+      <div><label>BS（mg/dl）</label><input id="bs" placeholder="—" inputmode="decimal" /></div>
+      <div><label>BT（℃）</label><input id="bt" placeholder="—" inputmode="decimal" /></div>
+      <div><label>瞳孔 右（mm）</label><input id="pupilR" placeholder="—" inputmode="decimal" /></div>
+      <div><label>瞳孔 左（mm）</label><input id="pupilL" placeholder="—" inputmode="decimal" /></div>
+      <div>
+        <label>対光反射 右</label>
+        <select id="lightR">
+          <option value="">未</option>
+          <option value="+">+</option>
+          <option value="-">-</option>
+        </select>
+      </div>
+      <div>
+        <label>対光反射 左</label>
+        <select id="lightL">
+          <option value="">未</option>
+          <option value="+">+</option>
+          <option value="-">-</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="grid grid2">
+      <div>
+        <label>認知症</label>
+        <select id="dementia">
+          <option value="">未入力</option>
+          <option value="有り">有り</option>
+          <option value="無し">無し</option>
+          <option value="指摘">指摘</option>
+        </select>
+      </div>
+      <div>
+        <label>抗凝固薬・抗血小板薬内服</label>
+        <select id="antiUse">
+          <option value="">未入力</option>
+          <option value="有り">有り</option>
+          <option value="無し">無し</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <label>薬品名（有りの場合）</label>
+      <input id="antiName" placeholder="薬品名を入力" disabled />
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="margin:0 0 10px">既往歴</h3>
+    <div class="grid grid2" id="pastGrid"></div>
+
+    <div style="margin-top:10px">
+      <label>その他の既往歴（自由入力）</label>
+      <textarea id="otherPast" placeholder="例：喘息、甲状腺疾患 など"></textarea>
+    </div>
+  </section>
+
+  <!-- STEP 2: 6 items -->
+  <section class="card hidden" data-step="six">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">6項目（チェック）</h3>
+      <span class="status" id="st_six">未入力</span>
+    </div>
+
+    <div id="sixList" class="grid" style="margin-top:10px"></div>
+  </section>
+
+  <!-- STEP 3: CPSS / ELVO -->
+  <section class="card hidden" data-step="cpss">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">CPSS / ELVO</h3>
+      <span class="status" id="st_cpss">未入力</span>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="margin:0 0 10px">CPSS</h3>
+    <div id="cpssList" class="grid"></div>
+
+    <div class="divider"></div>
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">判定</h3>
+      <div id="cpssJudge" class="mono">未入力</div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="margin:0 0 10px">ELVO（緊急大血管閉塞）スクリーン</h3>
+    <div id="elvoList" class="grid"></div>
+  </section>
+
+  <!-- STEP 4: KPSS -->
+  <section class="card hidden" data-step="kpss">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">KPSS</h3>
+      <span class="status" id="st_kpss">未入力</span>
+    </div>
+
+    <div id="kpssList" class="grid" style="margin-top:10px"></div>
+
+    <div class="divider"></div>
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">合計</h3>
+      <div id="kpssSum" class="mono">—</div>
+    </div>
+  </section>
+
+  <!-- STEP 5: Summary -->
+  <section class="card hidden" data-step="summary">
+    <h3>共有</h3>
+    <label>まとめ</label>
+    <textarea id="summaryBox" readonly></textarea>
+
+    <div class="divider"></div>
+    <div class="row">
+      <button class="btn" id="btnNew">新規評価</button>
+      <button class="btn" id="btnCopy">コピー</button>
+      <button class="btn primary" id="btnShare">共有</button>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="margin:0 0 10px">MRI 確認チェックリスト</h3>
+    <div class="grid grid2" id="mriList"></div>
+
+    <div class="divider"></div>
+    <h3 style="margin:0 0 10px">履歴</h3>
+    <div class="row" style="justify-content:space-between">
+      <div class="muted" style="font-size:12px">※最新10件</div>
+      <button class="btn" id="btnClearHistory" style="max-width:220px">全削除</button>
+    </div>
+    <div id="history" class="grid" style="margin-top:10px"></div>
+  </section>
+</div>
+
+<div class="bottom">
+  <button class="btn" id="btnBack">戻る</button>
+  <button class="btn primary" id="btnNext">次へ</button>
+</div>
+
+<div class="toast" id="toast">保存しました</div>
 
 <script>
-  // -----------------------------
-  // Storage Keys
-  // -----------------------------
-  const KEY_HISTORY = "summaryHistory_v1";
-  const KEY_DRAFT = "draft_v1";
+/** ====== State ====== */
+const state = {
+  evaluationStartAt: null,
 
-  // -----------------------------
-  // Past history options
-  // -----------------------------
-  const pastOptions = ["高血圧","不整脈","心疾患","糖尿病","脂質異常症","脳梗塞","脳出血"];
-  const pastSet = new Set();
+  patientID: "", age: "", sex: "男",
+  lkw: "", disc: "",
+  dementia: "", antiUse: "", antiName: "",
+  past: new Set(), otherPast: "",
 
-  // -----------------------------
-  // Helpers
-  // -----------------------------
-  const $ = (id)=>document.getElementById(id);
-  const pad2 = (n)=>String(n).padStart(2,"0");
+  jcs:"", gcsE:"", gcsV:"", gcsM:"",
+  bpSys:"", bpDia:"", spo2:"", o2Flow:"", o2Pct:"",
+  hr:"", rhythm:"SR", irregSubtype:"",
+  bs:"", bt:"",
+  pupilR:"", pupilL:"",
+  lightR:"", lightL:"",
 
-  function showToast(msg="保存しました"){
-    const t = $("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    setTimeout(()=>t.classList.remove("show"), 1100);
-  }
+  six: { pulse:null, gaze:null, neglect:null, hemianopia:null, aphasia:null, hemiparesis:null },
 
-  function parseDTLocal(v){
-    if(!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  }
+  cpss: { face:null, faceSide:"右", arm:null, armSide:"右", speech:null },
 
-  function formatMDHM(d){
-    const M = d.getMonth()+1, D = d.getDate(), hh = pad2(d.getHours()), mm = pad2(d.getMinutes());
-    return `${M}/${D} ${hh}:${mm}`;
-  }
+  elvo: {
+    gaze:null, gazeDir:"右", naming:null, fingers:null
+  },
 
-  function elapsedText(lkw, disc){
-    if(!lkw || !disc) return "—";
-    const min = Math.floor((disc.getTime() - lkw.getTime())/60000);
-    const abs = Math.abs(min);
-    const h = Math.floor(abs/60);
-    const m = abs%60;
-    const t = (h>0) ? `${h}時間${m}分` : `${m}分`;
-    return (min<0) ? `⚠️ ${t}（発見が最終健在より前）` : t;
-  }
+  kpss: { arousal:null, question:null, uR:null, uL:null, lR:null, lL:null, lang:null },
 
-  function loadHistory(){
-    try{
-      return JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]");
-    }catch{ return []; }
-  }
-  function saveHistory(arr){
-    localStorage.setItem(KEY_HISTORY, JSON.stringify(arr));
-  }
+  mri: { metal:false, wig:false, powder:false, pacer:false, denture:false, hearing:false, patch:false }
+};
 
-  function loadDraft(){
-    try{
-      return JSON.parse(localStorage.getItem(KEY_DRAFT) || "{}");
-    }catch{ return {}; }
-  }
-  function saveDraft(obj){
-    localStorage.setItem(KEY_DRAFT, JSON.stringify(obj));
-  }
+/** ====== Steps ====== */
+const steps = [
+  { key:"intro",   title:"開始" },
+  { key:"overview",title:"基本情報" },
+  { key:"six",     title:"６項目" },
+  { key:"cpss",    title:"CPSS/ELVO" },
+  { key:"kpss",    title:"KPSS" },
+  { key:"summary", title:"共有" }
+];
+let currentStep = 0;
 
-  // -----------------------------
-  // UI init
-  // -----------------------------
-  function renderPast(){
-    const wrap = $("past");
-    wrap.innerHTML = "";
-    pastOptions.forEach(p=>{
-      const b = document.createElement("button");
-      b.className = "pill";
-      b.type = "button";
-      b.textContent = p;
-      b.onclick = ()=>{
-        if(pastSet.has(p)) pastSet.delete(p); else pastSet.add(p);
-        b.classList.toggle("on", pastSet.has(p));
-        autoSaveDraft();
-      };
-      wrap.appendChild(b);
-    });
-  }
+/** ====== Helpers ====== */
+const $ = (id)=>document.getElementById(id);
+const qs = (sel)=>document.querySelector(sel);
+const qsa = (sel)=>Array.from(document.querySelectorAll(sel));
 
-  function renderHistory(){
-    const hist = loadHistory();
-    const box = $("historyList");
-    if(!hist.length){
-      box.innerHTML = `<div class="muted">履歴はまだありません</div>`;
-      return;
-    }
-    const top10 = hist.slice(0,10);
-    box.innerHTML = top10.map(item=>`
-      <div class="histItem">
-        <div class="histMeta">${item.createdAt}</div>
-        <div class="histText">${escapeHtml(item.text)}</div>
-        <button class="btn ghost" style="max-width:110px" onclick="deleteHistory('${item.id}')">削除</button>
+function showToast(msg="保存しました"){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1200);
+}
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+
+function formatMDHM(date){
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "不明";
+  return `${d.getMonth()+1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function elapsedMinutes(lkw, disc){
+  const a = new Date(lkw), b = new Date(disc);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return null;
+  return Math.floor((b - a) / 60000);
+}
+function formatElapsed(min){
+  const abs = Math.abs(min);
+  const h = Math.floor(abs/60), m = abs%60;
+  return h>0 ? `${h}時間${m}分` : `${m}分`;
+}
+
+function inputState(values){
+  const filled = values.filter(v=>v!==null && v!==undefined && v!=="").length;
+  if (filled===0) return "required";
+  if (filled===values.length) return "ok";
+  return "partial";
+}
+function setStatus(el, st){
+  el.classList.remove("ok","warn","bad");
+  if (st==="ok"){ el.classList.add("ok"); el.textContent="入力済み"; return; }
+  if (st==="partial"){ el.classList.add("warn"); el.textContent="一部未入力"; return; }
+  el.classList.add("bad"); el.textContent="未入力";
+}
+
+/** ====== UI build ====== */
+function buildTabs(){
+  const tabs = $("stepTabs");
+  tabs.innerHTML = steps.map((s,i)=>`
+    <button class="tab" data-i="${i}" aria-current="${i===currentStep}">
+      ${s.title}
+    </button>
+  `).join("");
+  tabs.onclick = (e)=>{
+    const b = e.target.closest("button[data-i]");
+    if(!b) return;
+    const i = Number(b.dataset.i);
+    // introから飛ぶのはOK、ただし「開始」を踏んでないならstart扱いにする
+    if (i>0 && !state.evaluationStartAt) state.evaluationStartAt = new Date().toISOString();
+    currentStep = i;
+    render();
+  };
+}
+
+function buildPast(){
+  const items = ["高血圧","不整脈","心疾患","糖尿病","脂質異常症","脳梗塞","脳出血"];
+  const grid = $("pastGrid");
+  grid.innerHTML = items.map(t=>`
+    <button class="pill ${state.past.has(t)?"on":""}" data-past="${t}">
+      ${t}
+    </button>
+  `).join("");
+  grid.onclick = (e)=>{
+    const b = e.target.closest("button[data-past]");
+    if(!b) return;
+    const t = b.dataset.past;
+    if (state.past.has(t)) state.past.delete(t); else state.past.add(t);
+    render();
+  };
+}
+
+function pill2(title, key, labels=("なし","あり")){
+  const v = state.six[key];
+  return `
+    <div>
+      <label>${title}</label>
+      <div class="grid grid2">
+        <button class="pill ${v===0?"on":""}" data-six="${key}" data-val="0">${labels[0]}</button>
+        <button class="pill ${v===1?"on":""}" data-six="${key}" data-val="1">${labels[1]}</button>
       </div>
-    `).join("");
-  }
+    </div>
+  `;
+}
+function buildSix(){
+  $("sixList").innerHTML = [
+    pill2("脈不整","pulse"),
+    pill2("共同偏視","gaze"),
+    pill2("半側空間無視","neglect"),
+    pill2("半盲","hemianopia"),
+    pill2("失語","aphasia"),
+    pill2("片麻痺","hemiparesis"),
+  ].join("");
+  $("sixList").onclick = (e)=>{
+    const b = e.target.closest("button[data-six]");
+    if(!b) return;
+    state.six[b.dataset.six] = Number(b.dataset.val);
+    render();
+  };
+}
 
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;");
-  }
+function cpssRow(title, key, hasSide){
+  const v = state.cpss[key];
+  const sideKey = key+"Side";
+  const side = state.cpss[sideKey] || "右";
+  return `
+    <div class="card" style="padding:14px;border-radius:16px">
+      <div class="row" style="justify-content:space-between">
+        <div style="font-weight:800">${title}</div>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <button class="pill ${v===0?"on":""}" data-cpss="${key}" data-val="0">正常</button>
+        <button class="pill ${v===1?"on":""}" data-cpss="${key}" data-val="1">異常</button>
+      </div>
+      ${hasSide && v===1 ? `
+        <div style="margin-top:10px">
+          <label>左右</label>
+          <div class="grid grid2">
+            <button class="pill ${side==="右"?"on":""}" data-side="${sideKey}" data-val="右">右</button>
+            <button class="pill ${side==="左"?"on":""}" data-side="${sideKey}" data-val="左">左</button>
+          </div>
+        </div>
+      `:""}
+    </div>
+  `;
+}
+function buildCpss(){
+  $("cpssList").innerHTML = [
+    cpssRow("顔面の下垂","face",true),
+    cpssRow("上肢の動揺","arm",true),
+    cpssRow("言語","speech",false),
+  ].join("");
 
-  window.deleteHistory = function(id){
-    const hist = loadHistory().filter(x=>x.id!==id);
-    saveHistory(hist);
-    renderHistory();
-  }
+  $("cpssList").onclick = (e)=>{
+    const b = e.target.closest("button[data-cpss],button[data-side]");
+    if(!b) return;
+    if (b.dataset.cpss){
+      const k = b.dataset.cpss;
+      state.cpss[k] = Number(b.dataset.val);
+      // side 初期値
+      if (k==="face" && state.cpss.face===1 && !state.cpss.faceSide) state.cpss.faceSide="右";
+      if (k==="arm" && state.cpss.arm===1 && !state.cpss.armSide) state.cpss.armSide="右";
+      render();
+    }
+    if (b.dataset.side){
+      state.cpss[b.dataset.side] = b.dataset.val;
+      render();
+    }
+  };
+}
 
-  // -----------------------------
-  // Summary generator
-  // -----------------------------
-  function getField(id){ return ($(id).value || "").trim(); }
+function elvoRow(title, key, opts){
+  const v = state.elvo[key];
+  // opts: { able, unable, hard, hasDir }
+  const hasDir = !!opts.hasDir;
+  const dirKey = "gazeDir";
+  const dir = state.elvo[dirKey] || "右";
+  return `
+    <div class="card" style="padding:14px;border-radius:16px">
+      <div style="font-weight:800">${title}</div>
+      <div class="grid" style="margin-top:10px">
+        <button class="pill ${v===0?"on":""}" data-elvo="${key}" data-val="0">${opts.able}</button>
+        <button class="pill ${v===1?"on":""}" data-elvo="${key}" data-val="1">${opts.unable}</button>
+        <button class="pill ${v===2?"on":""}" data-elvo="${key}" data-val="2">${opts.hard}</button>
+        <button class="pill ${v===null?"on":""}" data-elvo="${key}" data-val="">未入力</button>
+      </div>
+      ${hasDir && v===1 ? `
+        <div style="margin-top:10px">
+          <label>方向</label>
+          <div class="grid grid3">
+            ${["右","左","内下方"].map(x=>`
+              <button class="pill ${dir===x?"on":""}" data-elvo-dir="${dirKey}" data-val="${x}">${x}</button>
+            `).join("")}
+          </div>
+        </div>
+      `:""}
+    </div>
+  `;
+}
+function buildElvo(){
+  $("elvoList").innerHTML = [
+    elvoRow("眼球位置","gaze",{able:"正中",unable:"共同偏視",hard:"評価困難",hasDir:true}),
+    elvoRow("物品呼称","naming",{able:"できる",unable:"できない",hard:"評価困難"}),
+    elvoRow("指の数","fingers",{able:"できる",unable:"できない",hard:"評価困難"}),
+  ].join("");
 
-  function buildSummary(){
-    const patientID = getField("patientID") || "—";
-    const age = getField("age") || "—";
-    const sex = getField("sex") || "—";
+  $("elvoList").onclick = (e)=>{
+    const b = e.target.closest("button[data-elvo],button[data-elvo-dir]");
+    if(!b) return;
+    if (b.dataset.elvo){
+      const k = b.dataset.elvo;
+      const raw = b.dataset.val;
+      state.elvo[k] = raw==="" ? null : Number(raw);
+      if (k==="gaze" && state.elvo.gaze===1 && !state.elvo.gazeDir) state.elvo.gazeDir="右";
+      render();
+    }
+    if (b.dataset.elvoDir){
+      state.elvo[b.dataset.elvoDir] = b.dataset.val;
+      render();
+    }
+  };
+}
 
-    const lkw = parseDTLocal(getField("lkw"));
-    const disc = parseDTLocal(getField("disc"));
+function kpssBlock(title, key, labels){
+  const v = state.kpss[key];
+  return `
+    <div class="card" style="padding:14px;border-radius:16px">
+      <div style="font-weight:800">${title}</div>
+      <div class="grid" style="margin-top:10px">
+        ${labels.map((t,i)=>`
+          <button class="pill ${v===i?"on":""}" data-kpss="${key}" data-val="${i}">${t}</button>
+        `).join("")}
+      </div>
+      <div style="margin-top:8px">
+        <button class="pill ${v===null?"on":""}" data-kpss="${key}" data-val="">未入力</button>
+      </div>
+    </div>
+  `;
+}
+function buildKpss(){
+  $("kpssList").innerHTML = [
+    kpssBlock("意識水準","arousal",["０＝完全覚醒","１＝刺激をすると覚醒する","２＝完全に無反応"]),
+    kpssBlock("意識障害（患者の名前を聞く）","question",["０＝正解","１＝不正解"]),
+    kpssBlock("上肢右","uR",["０＝保持できる","１＝下垂する","２＝挙上不可"]),
+    kpssBlock("上肢左","uL",["０＝保持できる","１＝下垂する","２＝挙上不可"]),
+    kpssBlock("下肢右","lR",["０＝保持できる","１＝下垂する","２＝挙上不可"]),
+    kpssBlock("下肢左","lL",["０＝保持できる","１＝下垂する","２＝挙上不可"]),
+    kpssBlock("言語（今日はいい天気です）","lang",["０＝正確に言える","１＝不明瞭/異常","２＝無言/理解不能"]),
+  ].join("");
 
-    const elapsed = elapsedText(lkw, disc);
+  $("kpssList").onclick = (e)=>{
+    const b = e.target.closest('button[data-kpss]');
+    if(!b) return;
+    const k = b.dataset.kpss;
+    const raw = b.dataset.val;
+    state.kpss[k] = raw==="" ? null : Number(raw);
+    render();
+  };
+}
 
-    const past = pastSet.size ? Array.from(pastSet).join(" / ") : "—";
-    const otherPast = getField("otherPast") || "—";
+function buildMri(){
+  const items = [
+    {k:"metal",  t:"金属"},
+    {k:"wig",    t:"かつら"},
+    {k:"powder", t:"頭髪パウダー"},
+    {k:"pacer",  t:"ペースメーカー等"},
+    {k:"denture",t:"入れ歯"},
+    {k:"hearing",t:"補聴器"},
+    {k:"patch",  t:"貼付薬"},
+  ];
+  const box = $("mriList");
+  box.innerHTML = items.map(x=>`
+    <button class="pill ${state.mri[x.k]?"on":""}" data-mri="${x.k}">
+      ${x.t}
+    </button>
+  `).join("");
+  box.onclick = (e)=>{
+    const b = e.target.closest("button[data-mri]");
+    if(!b) return;
+    const k = b.dataset.mri;
+    state.mri[k] = !state.mri[k];
+    render();
+  };
+}
 
-    const jcs = getField("jcs") || "—";
-    const gcsE = getField("gcsE") || "-";
-    const gcsV = getField("gcsV") || "-";
-    const gcsM = getField("gcsM") || "-";
-    const bpSys = getField("bpSys") || "—";
-    const bpDia = getField("bpDia") || "—";
-    const spo2 = getField("spo2") || "—";
-    const oxygenFlow = getField("oxygenFlow") || "—";
-    const oxygenPercent = getField("oxygenPercent") || "—";
-    const heartRate = getField("heartRate") || "—";
-    const heartRhythm = getField("heartRhythm") || "—";
-    const irregularSubtype = getField("irregularSubtype");
-    const bs = getField("bs") || "—";
-    const bt = getField("bt") || "—";
-    const pupilRight = getField("pupilRight") || "—";
-    const pupilLeft = getField("pupilLeft") || "—";
+/** ====== Bind inputs (Overview) ====== */
+function bindInputs(){
+  const bind = (id, key, cast=(x)=>x) => {
+    const el = $(id);
+    if(!el) return;
+    el.oninput = ()=>{ state[key] = cast(el.value); render(false); };
+    el.onchange = ()=>{ state[key] = cast(el.value); render(false); };
+  };
 
-    const rhythmText = (heartRhythm==="不整" && irregularSubtype) ? `${heartRhythm}, ${irregularSubtype}` : heartRhythm;
+  bind("patientID","patientID");
+  bind("age","age");
+  $("sex").onchange = ()=>{ state.sex = $("sex").value; render(false); };
 
-    const timeStr = (d)=> d ? formatMDHM(d) : "不明";
+  $("lkw").onchange = ()=>{ state.lkw = $("lkw").value; render(false); };
+  $("disc").onchange = ()=>{ state.disc = $("disc").value; render(false); };
 
-    return `脳卒中対応記録
+  bind("jcs","jcs");
+  bind("gcsE","gcsE");
+  bind("gcsV","gcsV");
+  bind("gcsM","gcsM");
+  bind("bpSys","bpSys");
+  bind("bpDia","bpDia");
+  bind("spo2","spo2");
+  bind("o2Flow","o2Flow");
+  bind("o2Pct","o2Pct");
+  bind("hr","hr");
+  bind("bs","bs");
+  bind("bt","bt");
+  bind("pupilR","pupilR");
+  bind("pupilL","pupilL");
 
-ID: ${patientID}
-年齢: ${age}　性別: ${sex}
-既往歴: ${past}
-その他既往歴: ${otherPast}
-最終健在: ${timeStr(lkw)}
-発見・発症時刻: ${timeStr(disc)}
+  $("rhythm").onchange = ()=>{
+    state.rhythm = $("rhythm").value;
+    if (state.rhythm !== "不整") state.irregSubtype = "";
+    render(false);
+  };
+  $("irregSubtype").onchange = ()=>{
+    state.irregSubtype = $("irregSubtype").value;
+    render(false);
+  };
+
+  $("lightR").onchange = ()=>{ state.lightR = $("lightR").value; render(false); };
+  $("lightL").onchange = ()=>{ state.lightL = $("lightL").value; render(false); };
+
+  $("dementia").onchange = ()=>{ state.dementia = $("dementia").value; render(false); };
+
+  $("antiUse").onchange = ()=>{
+    state.antiUse = $("antiUse").value;
+    if(state.antiUse!=="有り") state.antiName = "";
+    render(false);
+  };
+  $("antiName").oninput = ()=>{
+    state.antiName = $("antiName").value;
+    render(false);
+  };
+
+  $("otherPast").oninput = ()=>{
+    state.otherPast = $("otherPast").value;
+    render(false);
+  };
+}
+
+/** ====== Summary text ====== */
+function cpssJudge(){
+  const f = state.cpss.face, a = state.cpss.arm, s = state.cpss.speech;
+  if (f===null && a===null && s===null) return "未入力";
+  if ([f,a,s].some(v=>v===null)) return "一部未入力";
+  const pos = (f===1)||(a===1)||(s===1);
+  return pos ? "陽性" : "陰性";
+}
+
+function kpssScore(){
+  const k = state.kpss;
+  const arr = [k.arousal,k.question,k.uR,k.uL,k.lR,k.lL,k.lang];
+  if (arr.some(v=>v===null)) return null;
+  return arr.reduce((p,c)=>p+c,0);
+}
+
+function pastText(){
+  const arr = Array.from(state.past);
+  if (arr.length===0) return "既往歴: —";
+  return "既往歴: " + arr.join(" / ");
+}
+
+function summaryText(){
+  const timeStr = (v)=> v ? formatMDHM(v) : "不明";
+  const min = elapsedMinutes(state.lkw, state.disc);
+  const elapsed = (min===null) ? "—" : formatElapsed(min);
+
+  const cpssParts = [];
+  if (state.cpss.face===null) cpssParts.push("顔面: —");
+  else if (state.cpss.face===0) cpssParts.push("顔面: 正常");
+  else cpssParts.push(`顔面: 異常(${state.cpss.faceSide||"左右未"})`);
+
+  if (state.cpss.arm===null) cpssParts.push("上肢: —");
+  else if (state.cpss.arm===0) cpssParts.push("上肢: 正常");
+  else cpssParts.push(`上肢: 異常(${state.cpss.armSide||"左右未"})`);
+
+  if (state.cpss.speech===null) cpssParts.push("言語: —");
+  else cpssParts.push(`言語: ${state.cpss.speech===0?"正常":"異常"}`);
+
+  const elvoItem = (title, sel, extra) => {
+    if (sel===null) return `${title}: —`;
+    if (sel===0) return `${title}: できる`;
+    if (sel===1){
+      if (title==="眼球位置") return `${title}: 共同偏視(${extra||"—"})`;
+      return `${title}: できない`;
+    }
+    if (sel===2) return `${title}: 評価困難`;
+    return `${title}: —`;
+  };
+
+  const ksum = kpssScore();
+  const ksumText = (ksum===null) ? "—" : `${ksum}点`;
+
+  const anti = (()=> {
+    if (!state.antiUse) return "—";
+    if (state.antiUse==="無し") return "無し";
+    const n = (state.antiName||"").trim();
+    return n ? `有り(${n})` : "有り";
+  })();
+
+  const rhythmTail = (state.rhythm==="不整" && state.irregSubtype) ? `, ${state.irregSubtype}` : "";
+
+  return `脳卒中対応記録
+
+ID: ${state.patientID || "—"}
+年齢: ${state.age || "—"}　性別: ${state.sex}
+認知症: ${state.dementia || "—"}
+抗凝固/抗血小板: ${anti}
+${pastText()}
+その他既往歴: ${(state.otherPast||"").trim() ? state.otherPast.trim() : "—"}
+最終健在: ${timeStr(state.lkw)}
+発見・発症時刻: ${timeStr(state.disc)}
 経過: ${elapsed}
 
 バイタル:
-・JCS: ${jcs} / GCS: E${gcsE} V${gcsV} M${gcsM}
-・BP: ${bpSys}/${bpDia} mmHg  SpO₂: ${spo2}%  酸素: ${oxygenFlow}L ${oxygenPercent}%
-・HR: ${heartRate}/分 ${rhythmText}
-・BS: ${bs} mg/dl  BT: ${bt} ℃
-・瞳孔: 右 ${pupilRight} mm / 左 ${pupilLeft} mm
+・JCS: ${state.jcs||"—"} / GCS: E${state.gcsE||"-"} V${state.gcsV||"-"} M${state.gcsM||"-"}
+・BP: ${state.bpSys||"—"}/${state.bpDia||"—"} mmHg  SpO₂: ${state.spo2||"—"}%  酸素: ${state.o2Flow||"—"}L ${state.o2Pct||"—"}%
+・HR: ${state.hr||"—"}/分 ${state.rhythm}${rhythmTail}
+・BS: ${state.bs||"—"} mg/dl  BT: ${state.bt||"—"} ℃
+・瞳孔: 右 ${state.pupilR||"—"} mm / 左 ${state.pupilL||"—"} mm （対光反射: 右${state.lightR||"未"}/左${state.lightL||"未"}）
+
+6項目:
+・脈不整: ${state.six.pulse===null?"—":(state.six.pulse===0?"なし":"あり")}
+・共同偏視: ${state.six.gaze===null?"—":(state.six.gaze===0?"なし":"あり")}
+・半側空間無視: ${state.six.neglect===null?"—":(state.six.neglect===0?"なし":"あり")}
+・半盲: ${state.six.hemianopia===null?"—":(state.six.hemianopia===0?"なし":"あり")}
+・失語: ${state.six.aphasia===null?"—":(state.six.aphasia===0?"なし":"あり")}
+・片麻痺: ${state.six.hemiparesis===null?"—":(state.six.hemiparesis===0?"なし":"あり")}
+
+CPSS: ${cpssJudge()}
+・${cpssParts.join(" / ")}
+
+ELVO:
+・${elvoItem("眼球位置", state.elvo.gaze, state.elvo.gazeDir)}
+・${elvoItem("物品呼称", state.elvo.naming)}
+・${elvoItem("指の数", state.elvo.fingers)}
+
+KPSS: 合計 ${ksumText}
+・意識水準: ${state.kpss.arousal===null?"—":state.kpss.arousal}, 意識障害: ${state.kpss.question===null?"—":state.kpss.question}, 上肢R: ${state.kpss.uR===null?"—":state.kpss.uR}, 上肢L: ${state.kpss.uL===null?"—":state.kpss.uL}, 下肢R: ${state.kpss.lR===null?"—":state.kpss.lR}, 下肢L: ${state.kpss.lL===null?"—":state.kpss.lL}, 言語: ${state.kpss.lang===null?"—":state.kpss.lang}
 `;
+}
+
+/** ====== LocalStorage History ====== */
+const KEY_RECORD = "strokeTriage_record_v1";
+const KEY_HISTORY = "strokeTriage_history_v1";
+
+function saveRecord(){
+  localStorage.setItem(KEY_RECORD, JSON.stringify({
+    ...state,
+    past: Array.from(state.past)
+  }));
+}
+function loadRecord(){
+  const raw = localStorage.getItem(KEY_RECORD);
+  if(!raw) return;
+  try{
+    const obj = JSON.parse(raw);
+    Object.assign(state, obj);
+    state.past = new Set(obj.past || []);
+  }catch(e){}
+}
+function loadHistory(){
+  const raw = localStorage.getItem(KEY_HISTORY);
+  if(!raw) return [];
+  try{ return JSON.parse(raw) || []; }catch(e){ return []; }
+}
+function saveHistory(list){
+  localStorage.setItem(KEY_HISTORY, JSON.stringify(list));
+}
+function appendHistory(text, createdAtISO){
+  const list = loadHistory();
+  list.unshift({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), createdAt: createdAtISO || new Date().toISOString(), text });
+  saveHistory(list.slice(0,50));
+}
+
+/** ====== Render ====== */
+function render(save=true){
+  // tabs
+  qsa("#stepTabs .tab").forEach((b,i)=>b.setAttribute("aria-current", String(i===currentStep)));
+
+  // show section
+  qsa("section[data-step]").forEach(sec=>{
+    sec.classList.toggle("hidden", sec.dataset.step !== steps[currentStep].key);
+  });
+
+  // sync inputs (overview)
+  if (steps[currentStep].key==="overview"){
+    $("patientID").value = state.patientID;
+    $("age").value = state.age;
+    $("sex").value = state.sex;
+
+    $("lkw").value = state.lkw;
+    $("disc").value = state.disc;
+
+    $("jcs").value = state.jcs;
+    $("gcsE").value = state.gcsE;
+    $("gcsV").value = state.gcsV;
+    $("gcsM").value = state.gcsM;
+    $("bpSys").value = state.bpSys;
+    $("bpDia").value = state.bpDia;
+    $("spo2").value = state.spo2;
+    $("o2Flow").value = state.o2Flow;
+    $("o2Pct").value = state.o2Pct;
+    $("hr").value = state.hr;
+    $("bs").value = state.bs;
+    $("bt").value = state.bt;
+    $("pupilR").value = state.pupilR;
+    $("pupilL").value = state.pupilL;
+
+    $("rhythm").value = state.rhythm;
+    $("irregSubtype").disabled = (state.rhythm!=="不整");
+    $("irregSubtype").value = state.irregSubtype || "";
+
+    $("lightR").value = state.lightR || "";
+    $("lightL").value = state.lightL || "";
+
+    $("dementia").value = state.dementia || "";
+    $("antiUse").value = state.antiUse || "";
+    $("antiName").disabled = (state.antiUse!=="有り");
+    $("antiName").value = state.antiName || "";
+    $("otherPast").value = state.otherPast || "";
+
+    // elapsed + warn
+    const min = elapsedMinutes(state.lkw, state.disc);
+    $("elapsed").textContent = (min===null) ? "—" : formatElapsed(min);
+    const warn = (min!==null && min<0);
+    $("timeWarn").style.display = warn ? "block" : "none";
+
+    buildPast();
   }
 
-  // -----------------------------
-  // Draft autosave
-  // -----------------------------
-  const draftFields = [
-    "patientID","age","sex","lkw","disc",
-    "jcs","gcsE","gcsV","gcsM","bpSys","bpDia","spo2",
-    "oxygenFlow","oxygenPercent","heartRate","heartRhythm","irregularSubtype","bs","bt","pupilRight","pupilLeft",
-    "otherPast"
-  ];
-
-  function autoSaveDraft(){
-    const obj = {};
-    draftFields.forEach(id=> obj[id] = $(id).value );
-    obj.past = Array.from(pastSet);
-    saveDraft(obj);
+  // rebuild step lists (cheap enough)
+  if (steps[currentStep].key==="six") buildSix();
+  if (steps[currentStep].key==="cpss"){ buildCpss(); buildElvo(); }
+  if (steps[currentStep].key==="kpss") buildKpss();
+  if (steps[currentStep].key==="summary"){
+    buildMri();
+    $("summaryBox").value = summaryText();
+    renderHistory();
   }
 
-  function restoreDraft(){
-    const d = loadDraft();
-    draftFields.forEach(id=>{
-      if(d[id]!==undefined) $(id).value = d[id];
-    });
-    (d.past||[]).forEach(x=>pastSet.add(x));
-    // reflect UI state
-    document.querySelectorAll("#past .pill").forEach(btn=>{
-      btn.classList.toggle("on", pastSet.has(btn.textContent));
-    });
-    updateElapsed();
+  // statuses
+  setStatus($("st_overview"), inputState([state.age, state.lkw || state.disc]));
+  setStatus($("st_six"), inputState(Object.values(state.six)));
+  setStatus($("st_cpss"), inputState([state.cpss.face, state.cpss.arm, state.cpss.speech, state.elvo.gaze, state.elvo.naming, state.elvo.fingers]));
+  setStatus($("st_kpss"), inputState(Object.values(state.kpss)));
+
+  // cpss judge
+  if ($("cpssJudge")) $("cpssJudge").textContent = cpssJudge();
+
+  // kpss sum
+  if ($("kpssSum")){
+    const s = kpssScore();
+    $("kpssSum").textContent = (s===null) ? "—" : `${s}点`;
   }
 
-  function updateElapsed(){
-    const lkw = parseDTLocal(getField("lkw"));
-    const disc = parseDTLocal(getField("disc"));
-    $("elapsed").textContent = elapsedText(lkw, disc);
+  // bottom buttons
+  $("btnBack").disabled = (currentStep===0);
+  $("btnNext").textContent = (currentStep===steps.length-1) ? "完了" : "次へ";
+
+  if (save) saveRecord();
+}
+
+function renderHistory(){
+  const box = $("history");
+  const list = loadHistory().slice(0,10);
+  if(list.length===0){
+    box.innerHTML = `<div class="muted" style="font-size:12px">履歴はまだありません</div>`;
+    return;
   }
+  box.innerHTML = list.map(item=>`
+    <div class="card" style="padding:12px;border-radius:16px">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div class="mono" style="font-size:12px">${formatMDHM(item.createdAt)}</div>
+        <button class="btn" data-del="${item.id}" style="max-width:120px">削除</button>
+      </div>
+      <div class="divider"></div>
+      <div style="white-space:pre-wrap;font-size:12px;line-height:1.6">${escapeHtml(item.text)}</div>
+    </div>
+  `).join("");
 
-  // -----------------------------
-  // Events
-  // -----------------------------
-  function wireInputs(){
-    draftFields.forEach(id=>{
-      $(id).addEventListener("input", ()=>{
-        updateElapsed();
-        autoSaveDraft();
-      });
-      $(id).addEventListener("change", ()=>{
-        updateElapsed();
-        autoSaveDraft();
-      });
-    });
+  box.onclick = (e)=>{
+    const b = e.target.closest("button[data-del]");
+    if(!b) return;
+    const id = b.dataset.del;
+    const all = loadHistory().filter(x=>x.id!==id);
+    saveHistory(all);
+    render(false);
+  };
+}
 
-    $("genBtn").onclick = ()=>{
-      const txt = buildSummary();
-      $("summary").textContent = txt;
-    };
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, (c)=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
 
-    $("copyBtn").onclick = async ()=>{
-      const txt = $("summary").textContent.trim();
-      if(!txt || txt==="ここに生成されます"){
-        $("summary").textContent = buildSummary();
-      }
-      const finalTxt = $("summary").textContent;
-      try{
-        await navigator.clipboard.writeText(finalTxt);
-      }catch{
-        // fallback
-        const ta = document.createElement("textarea");
-        ta.value = finalTxt;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-      }
-      // save to history
-      const hist = loadHistory();
-      hist.unshift({
-        id: crypto.randomUUID(),
-        createdAt: new Date().toLocaleString("ja-JP"),
-        text: finalTxt
-      });
-      saveHistory(hist);
-      renderHistory();
+/** ====== Navigation ====== */
+$("btnBack").onclick = ()=>{
+  if (currentStep>0) currentStep--;
+  render();
+};
+$("btnNext").onclick = ()=>{
+  if (currentStep===0 && !state.evaluationStartAt){
+    state.evaluationStartAt = new Date().toISOString();
+  }
+  if (currentStep < steps.length-1){
+    currentStep++;
+    render();
+  } else {
+    showToast("完了");
+  }
+};
+
+/** ====== Summary actions ====== */
+$("btnCopy").onclick = async ()=>{
+  const txt = summaryText();
+  try{
+    await navigator.clipboard.writeText(txt);
+    appendHistory(txt, state.evaluationStartAt || new Date().toISOString());
+    state.evaluationStartAt = null;
+    showToast("保存しました");
+    render();
+  }catch(e){
+    $("summaryBox").value = txt;
+    showToast("コピーできません（手動で選択してコピー）");
+  }
+};
+
+$("btnShare").onclick = async ()=>{
+  const txt = summaryText();
+  appendHistory(txt, state.evaluationStartAt || new Date().toISOString());
+  state.evaluationStartAt = null;
+  try{
+    if (navigator.share){
+      await navigator.share({ text: txt, title:"Stroke Triage" });
       showToast("保存しました");
-    };
-
-    $("clearAllBtn").onclick = ()=>{
-      if(!confirm("履歴を全削除しますか？")) return;
-      saveHistory([]);
-      renderHistory();
-      showToast("全削除しました");
-    };
-
-    $("heartRhythm").addEventListener("change", ()=>{
-      const v = $("heartRhythm").value;
-      $("irregularSubtype").disabled = (v !== "不整");
-      if(v !== "不整") $("irregularSubtype").value = "";
-      autoSaveDraft();
-    });
+    } else {
+      await navigator.clipboard.writeText(txt);
+      showToast("共有不可のためコピーしました");
+    }
+  }catch(e){
+    // user cancelled share: still saved
+    showToast("保存しました");
   }
+  render();
+};
 
-  // -----------------------------
-  // Boot
-  // -----------------------------
-  renderPast();
-  wireInputs();
-  restoreDraft();
-  renderHistory();
-  updateElapsed();
-  $("irregularSubtype").disabled = ($("heartRhythm").value !== "不整");
+$("btnNew").onclick = ()=>{
+  // reset but keep history
+  const keepHistory = loadHistory();
+  localStorage.removeItem(KEY_RECORD);
+
+  // reset state (cheap: reload page)
+  location.reload();
+};
+
+$("btnClearHistory").onclick = ()=>{
+  saveHistory([]);
+  showToast("履歴を削除しました");
+  render(false);
+};
+
+/** ====== Init ====== */
+buildTabs();
+loadRecord();
+bindInputs();
+
+// build initial lists (so clicks work)
+buildPast();
+buildSix();
+buildCpss();
+buildElvo();
+buildKpss();
+buildMri();
+
+// initial step
+currentStep = 0;
+render(false);
 </script>
 </body>
 </html>
